@@ -105,6 +105,11 @@ aquery.extend({
     // 是否为数组
     isArray: Array.isArray,
 
+    // obj是否是全局window
+    isWindow: function( obj ) {
+        return obj != null && obj === obj.window;
+    },
+
     // 对typeof进行增强, 如果obj为函数或对象(排除null), 解析其真正的类型
     type: function( obj ) {
         if ( obj == null ) {
@@ -141,8 +146,50 @@ aquery.extend({
         // 其他情况只有原型严格为Object时,才返回true
         Ctor = hasOwn.call( proto, "constructor" ) && proto.constructor;
         return typeof Ctor === "function" && fnToString.call( Ctor ) === ObjectFunctionString;
+    },
+
+    // 对obj循环
+    each: function( obj, callback ) {
+        var length, i = 0;
+
+        if ( isArrayLike( obj ) ) {
+            length = obj.length;
+            for ( ; i < length; i++ ) {
+                if ( callback.call( obj[ i ], i, obj[ i ] ) === false ) {
+                    break;
+                }
+            }
+        } else {
+            for ( i in obj ) {
+                if ( callback.call( obj[ i ], i, obj[ i ] ) === false ) {
+                    break;
+                }
+            }
+        }
+
+        return obj;
     }
 });
+
+// 构建class2type的数据
+aquery.each( "Boolean Number String Function Array Date RegExp Object Error Symbol".split( " " ),
+    function( i, name ) {
+        class2type[ "[object " + name + "]" ] = name.toLowerCase();
+    } );
+
+// obj是否可以像数组一样的行为, 可以供each使用
+function isArrayLike( obj ) {
+
+    var length = !!obj && "length" in obj && obj.length,
+        type = aquery.type( obj );
+
+    if ( type === "function" || aquery.isWindow( obj ) ) {
+        return false;
+    }
+
+    return type === "array" || length === 0 ||
+        typeof length === "number" && length > 0 && ( length - 1 ) in obj;
+}
 
 aquery.prototype.init.prototype = aquery.prototype;
 
