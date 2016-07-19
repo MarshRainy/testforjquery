@@ -17,7 +17,5 @@ require(['aquery/aquery'], function(aquery){
     console.log('------------------------------');
 
     console.log('test 1: ');
-    console.log(aquery());
-    console.log(aquery.extend);
-    console.log(aquery.extend());
+    console.log(aquery.extend(true,{a:[12,2]},{b:'sww'}));
 });

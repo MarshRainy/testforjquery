@@ -5,11 +5,19 @@
  */
 
 define([
+    './var/getProto',
     './var/class2type',
-    './var/toString'
+    './var/toString',
+    './var/hasOwn',
+    './var/fnToString',
+    './var/ObjectFunctionString'
 ], function (
+    getProto,
     class2type,
-    toString
+    toString,
+    hasOwn,
+    fnToString,
+    ObjectFunctionString
 ) {
 'use strict';
 
@@ -27,7 +35,7 @@ aquery.prototype = {
 
 aquery.extend = aquery.prototype.extend = function () {
     var
-        options,name,src,copy,
+        options,name,src,copy,copyIsArray,clone,
         length = arguments.length,
         target = arguments[0] || {},
         i = 1,
@@ -63,13 +71,76 @@ aquery.extend = aquery.prototype.extend = function () {
         for ( name in options){
             src = target[name];
             copy = options[name];
+
+            // 防止自引用, 源的某个属性不能为目标
+            if ( target === copy ) {
+                continue;
+            }
+
+            // 是否是深循环, 进行合并
+            if ( deep && copy && ( aquery.isPlainObject( copy ) ||
+                ( copyIsArray = aquery.isArray( copy ) ) ) ) {
+
+                if ( copyIsArray ) {
+                    copyIsArray = false;
+                    clone = src && aquery.isArray( src ) ? src : [];
+
+                } else {
+                    clone = src && aquery.isPlainObject( src ) ? src : {};
+                }
+
+                // Never move original objects, clone them
+                target[ name ] = aquery.extend( deep, clone, copy );
+
+                // Don't bring in undefined values
+            } else if ( copy !== undefined ) {
+                target[ name ] = copy;
+            }
         }
     }
+    return target;
 }
 
 aquery.extend({
+    // 是否为数组
+    isArray: Array.isArray,
+
+    // 对typeof进行增强, 如果obj为函数或对象(排除null), 解析其真正的类型
+    type: function( obj ) {
+        if ( obj == null ) {
+            return obj + "";
+        }
+
+        // Support: Android <=2.3 only (functionish RegExp)
+        return typeof obj === "object" || typeof obj === "function" ?
+        class2type[ toString.call( obj ) ] || "object" :
+            typeof obj;
+    },
+
+    // 是否为函数, 使用增强的type判断
     isFunction: function( obj ) {
         return aquery.type( obj ) === "function";
+    },
+
+    // 是否为原生的对象
+    isPlainObject: function( obj ) {
+        var proto, Ctor;
+
+        // 对象为空或不为对象, 返回false
+        if ( !obj || toString.call( obj ) !== "[object Object]" ) {
+            return false;
+        }
+
+        proto = getProto( obj );
+
+        // 对象没有原型, 返回true
+        if ( !proto ) {
+            return true;
+        }
+
+        // 其他情况只有原型严格为Object时,才返回true
+        Ctor = hasOwn.call( proto, "constructor" ) && proto.constructor;
+        return typeof Ctor === "function" && fnToString.call( Ctor ) === ObjectFunctionString;
     }
 });
 
