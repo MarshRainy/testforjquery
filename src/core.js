@@ -6,6 +6,7 @@
 
 define([
     './var/getProto',
+    './var/push',
     './var/class2type',
     './var/toString',
     './var/hasOwn',
@@ -13,6 +14,7 @@ define([
     './var/ObjectFunctionString'
 ], function (
     getProto,
+    push,
     class2type,
     toString,
     hasOwn,
@@ -27,10 +29,7 @@ var
     };
 
 aquery.prototype = {
-    constructor: aquery,
-    init: function () {
-        return this;
-    }
+    constructor: aquery
 };
 
 aquery.extend = aquery.prototype.extend = function () {
@@ -102,6 +101,39 @@ aquery.extend = aquery.prototype.extend = function () {
 }
 
 aquery.extend({
+    // 将arr放入results中
+    makeArray: function( arr, results ) {
+        var ret = results || [];
+
+        if ( arr != null ) {
+            if ( isArrayLike( Object( arr ) ) ) {
+                aquery.merge( ret,
+                    typeof arr === "string" ?
+                        [ arr ] : arr
+                );
+            } else {
+                push.call( ret, arr );
+            }
+        }
+
+        return ret;
+    },
+
+    // 合并数组, 将second合并到first中并返回
+    merge: function( first, second ) {
+        var len = +second.length,
+            j = 0,
+            i = first.length;
+
+        for ( ; j < len; j++ ) {
+            first[ i++ ] = second[ j ];
+        }
+
+        first.length = i;
+
+        return first;
+    },
+
     // 是否为数组
     isArray: Array.isArray,
 
@@ -190,8 +222,6 @@ function isArrayLike( obj ) {
     return type === "array" || length === 0 ||
         typeof length === "number" && length > 0 && ( length - 1 ) in obj;
 }
-
-aquery.prototype.init.prototype = aquery.prototype;
 
 return aquery;
 });

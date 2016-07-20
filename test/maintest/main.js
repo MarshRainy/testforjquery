@@ -2,13 +2,7 @@
  * Created by YuHan on 2016/7/14.
  */
 
-require.config({
-    paths:{
-        aquery: '../../src'
-    }
-});
-
-require(['aquery/aquery'], function(aquery){
+require(['../../src/aquery'], function(aquery){
     console.log('aquery: ');
     console.log(aquery);
     console.log('aquery(): ');
@@ -17,5 +11,17 @@ require(['aquery/aquery'], function(aquery){
     console.log('------------------------------');
 
     console.log('test 1: ');
-    console.log(aquery.extend(true,{a:[12,2]},{b:'sww'}));
+
+    console.log(aquery.type(new Number(1)));
+    console.log(typeof new Number(1));
+
+    console.log('------------------------------');
+
+    console.log('test 2: ');
+
+    console.log(aquery.find);
+    console.log(aquery.expr);
+
+    var rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/
+    console.log(rquickExpr.exec('#iddd'));
 });

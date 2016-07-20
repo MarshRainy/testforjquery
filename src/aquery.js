@@ -5,7 +5,9 @@
  */
 
 define([
-    "./core"
+    './core',
+    './selector',
+    './tracersing'
 ], function (aquery) {
 
     "use strict";
